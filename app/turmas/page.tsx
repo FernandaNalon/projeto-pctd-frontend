@@ -1,8 +1,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
+
 import { Sidebar } from '@/components/ui/sidebar';
 import { apiFetch } from '@/services/api';
+
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -74,26 +77,41 @@ export default function TurmasPage() {
           </CardHeader>
 
           <CardContent>
-            <form onSubmit={cadastrarTurma} className="grid grid-cols-1 gap-5 md:grid-cols-2">
+            <form
+              onSubmit={cadastrarTurma}
+              className="grid grid-cols-1 gap-5 md:grid-cols-2"
+            >
               <div>
                 <label className="mb-1 block text-sm font-medium text-slate-700">
                   Nome da turma
                 </label>
-                <Input value={nome} onChange={(e) => setNome(e.target.value)} placeholder="Ex: TII 13" />
+                <Input
+                  value={nome}
+                  onChange={(e) => setNome(e.target.value)}
+                  placeholder="Ex: TII 13"
+                />
               </div>
 
               <div>
                 <label className="mb-1 block text-sm font-medium text-slate-700">
                   Curso
                 </label>
-                <Input value={curso} onChange={(e) => setCurso(e.target.value)} placeholder="Ex: Técnico em Informática para Internet" />
+                <Input
+                  value={curso}
+                  onChange={(e) => setCurso(e.target.value)}
+                  placeholder="Ex: Técnico em Informática para Internet"
+                />
               </div>
 
               <div>
                 <label className="mb-1 block text-sm font-medium text-slate-700">
                   Período
                 </label>
-                <select className="h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm" value={periodo} onChange={(e) => setPeriodo(e.target.value)}>
+                <select
+                  className="h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm"
+                  value={periodo}
+                  onChange={(e) => setPeriodo(e.target.value)}
+                >
                   <option value="MANHA">Manhã</option>
                   <option value="TARDE">Tarde</option>
                   <option value="NOITE">Noite</option>
@@ -104,15 +122,25 @@ export default function TurmasPage() {
                 <label className="mb-1 block text-sm font-medium text-slate-700">
                   Data de início
                 </label>
-                <Input type="date" value={dataInicio} onChange={(e) => setDataInicio(e.target.value)} />
+                <Input
+                  type="date"
+                  value={dataInicio}
+                  onChange={(e) => setDataInicio(e.target.value)}
+                />
               </div>
 
               <div>
                 <label className="mb-1 block text-sm font-medium text-slate-700">
                   Data de conclusão
-                  <span className="ml-1 font-normal text-slate-400">(opcional)</span>
+                  <span className="ml-1 font-normal text-slate-400">
+                    (opcional)
+                  </span>
                 </label>
-                <Input type="date" value={dataConclusao} onChange={(e) => setDataConclusao(e.target.value)} />
+                <Input
+                  type="date"
+                  value={dataConclusao}
+                  onChange={(e) => setDataConclusao(e.target.value)}
+                />
               </div>
 
               <div className="flex items-end">
@@ -129,17 +157,27 @@ export default function TurmasPage() {
             <Card key={turma.id} className="border-0 shadow-sm">
               <CardContent className="flex items-center justify-between p-6">
                 <div>
-                  <h2 className="text-lg font-semibold text-slate-900">{turma.nome}</h2>
+                  <h2 className="text-lg font-semibold text-slate-900">
+                    {turma.nome}
+                  </h2>
                   <p className="text-sm text-slate-500">{turma.curso}</p>
                 </div>
 
-                <div className="flex gap-3 text-sm">
+                <div className="flex items-center gap-3 text-sm">
                   <span className="rounded-full bg-slate-100 px-3 py-1 text-slate-700">
                     {turma.periodo}
                   </span>
+
                   <span className="rounded-full bg-green-100 px-3 py-1 text-green-700">
                     {turma.status}
                   </span>
+
+                  <Link
+                    href={`/turmas/${turma.id}`}
+                    className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                  >
+                    Abrir turma
+                  </Link>
                 </div>
               </CardContent>
             </Card>

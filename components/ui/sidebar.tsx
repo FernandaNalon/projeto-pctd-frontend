@@ -6,28 +6,15 @@ import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard,
   Users,
-  BookOpen,
-  ClipboardList,
   MessageSquare,
-  Settings,
   LogOut,
+  Settings,
 } from 'lucide-react';
 
 const items = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/turmas', label: 'Turmas', icon: Users },
-  { href: '/alunos', label: 'Alunos', icon: Users },
-  {
-    href: '/unidades-curriculares',
-    label: 'UCs',
-    icon: BookOpen,
-  },
-  { href: '/aulas', label: 'Aulas', icon: ClipboardList },
-  {
-    href: '/observacoes',
-    label: 'Observações',
-    icon: MessageSquare,
-  },
+  { href: '/observacoes', label: 'Observações', icon: MessageSquare },
   { href: '/acessos', label: 'Acessos', icon: Settings },
 ];
 
@@ -60,8 +47,8 @@ export function Sidebar() {
           const Icon = item.icon;
 
           const ativo =
-            pathname === item.href;
-
+            pathname === item.href ||
+            pathname.startsWith(`${item.href}/`);
           return (
             <Link
               key={item.href}
@@ -76,10 +63,9 @@ export function Sidebar() {
                 py-3
                 transition
 
-                ${
-                  ativo
-                    ? 'bg-blue-600 text-white'
-                    : 'text-slate-300 hover:bg-slate-800'
+                ${ativo
+                  ? 'bg-blue-600 text-white'
+                  : 'text-slate-300 hover:bg-slate-800'
                 }
               `}
             >
