@@ -45,7 +45,7 @@ export default function TurmasPage() {
         curso,
         periodo,
         dataInicio,
-        dataFim: dataConclusao || dataInicio,
+        dataFim: dataConclusao || null,
         status: 'ATIVA',
       }),
     });

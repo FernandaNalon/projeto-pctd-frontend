@@ -35,6 +35,7 @@ type Docente = {
   id: string;
   nome: string;
   email: string;
+  role: string;
 };
 
 type UC = {
@@ -79,12 +80,16 @@ export default function TurmaDetalhesPage() {
   const [docenteId, setDocenteId] = useState('');
 
   async function carregarDados() {
-    const [turmaData, alunosData, ucsData, docentesData] = await Promise.all([
+    const [turmaData, alunosData, ucsData, usersData] = await Promise.all([
       apiFetch(`/turmas/${turmaId}`),
       apiFetch('/alunos'),
       apiFetch('/unidades-curriculares'),
-      apiFetch('/docentes'),
+      apiFetch('/users'),
     ]);
+
+    const docentesData = usersData.filter(
+      (user: Docente) => user.role === 'DOCENTE',
+    );
 
     setTurma(turmaData);
     setDocentes(docentesData);
@@ -118,7 +123,7 @@ export default function TurmaDetalhesPage() {
         curso: cursoTurma,
         periodo: periodoTurma,
         dataInicio: dataInicioTurma,
-        dataFim: dataFimTurma,
+        dataFim: dataFimTurma || null,
         status: statusTurma,
       }),
     });
@@ -312,22 +317,20 @@ export default function TurmaDetalhesPage() {
         <div className="mb-8 flex gap-2 border-b border-slate-200">
           <button
             onClick={() => setAba('alunos')}
-            className={`px-4 py-3 text-sm font-medium ${
-              aba === 'alunos'
+            className={`px-4 py-3 text-sm font-medium ${aba === 'alunos'
                 ? 'border-b-2 border-blue-600 text-blue-700'
                 : 'text-slate-500 hover:text-slate-900'
-            }`}
+              }`}
           >
             Alunos ({alunos.length})
           </button>
 
           <button
             onClick={() => setAba('ucs')}
-            className={`px-4 py-3 text-sm font-medium ${
-              aba === 'ucs'
+            className={`px-4 py-3 text-sm font-medium ${aba === 'ucs'
                 ? 'border-b-2 border-blue-600 text-blue-700'
                 : 'text-slate-500 hover:text-slate-900'
-            }`}
+              }`}
           >
             UCs ({ucs.length})
           </button>
