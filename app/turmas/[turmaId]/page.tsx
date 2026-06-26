@@ -25,9 +25,8 @@ type Aluno = {
   id: string;
   idInterno?: string;
   nomeCompleto: string;
-  email?: string;
-  telefone?: string;
   status: string;
+  observacoesDocente?: string;
   turmaId: string;
 };
 
@@ -70,9 +69,14 @@ export default function TurmaDetalhesPage() {
 
   const [idInterno, setIdInterno] = useState('');
   const [nomeCompleto, setNomeCompleto] = useState('');
-  const [emailAluno, setEmailAluno] = useState('');
-  const [telefone, setTelefone] = useState('');
+  const [observacoesDocente, setObservacoesDocente] = useState('');
   const [statusAluno, setStatusAluno] = useState('ATIVO');
+
+  const [alunoEditandoId, setAlunoEditandoId] = useState<string | null>(null);
+  const [editIdInterno, setEditIdInterno] = useState('');
+  const [editNomeCompleto, setEditNomeCompleto] = useState('');
+  const [editStatusAluno, setEditStatusAluno] = useState('ATIVO');
+  const [editObservacoesDocente, setEditObservacoesDocente] = useState('');
 
   const [nomeUc, setNomeUc] = useState('');
   const [cargaHoraria, setCargaHoraria] = useState('');
@@ -140,17 +144,15 @@ export default function TurmaDetalhesPage() {
       body: JSON.stringify({
         idInterno: idInterno || undefined,
         nomeCompleto,
-        email: emailAluno || undefined,
-        telefone: telefone || undefined,
         status: statusAluno,
+        observacoesDocente: observacoesDocente || undefined,
         turmaId,
       }),
     });
 
     setIdInterno('');
     setNomeCompleto('');
-    setEmailAluno('');
-    setTelefone('');
+    setObservacoesDocente('');
     setStatusAluno('ATIVO');
 
     carregarDados();
@@ -174,6 +176,36 @@ export default function TurmaDetalhesPage() {
     setCargaHoraria('');
     setQuantAulas('');
 
+    carregarDados();
+  }
+  function iniciarEdicaoAluno(aluno: Aluno) {
+    setAlunoEditandoId(aluno.id);
+    setEditIdInterno(aluno.idInterno ?? '');
+    setEditNomeCompleto(aluno.nomeCompleto);
+    setEditStatusAluno(aluno.status);
+    setEditObservacoesDocente(aluno.observacoesDocente ?? '');
+  }
+
+  function cancelarEdicaoAluno() {
+    setAlunoEditandoId(null);
+    setEditIdInterno('');
+    setEditNomeCompleto('');
+    setEditStatusAluno('ATIVO');
+    setEditObservacoesDocente('');
+  }
+
+  async function atualizarAluno(id: string) {
+    await apiFetch(`/alunos/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify({
+        idInterno: editIdInterno || undefined,
+        nomeCompleto: editNomeCompleto,
+        status: editStatusAluno,
+        observacoesDocente: editObservacoesDocente || undefined,
+      }),
+    });
+
+    cancelarEdicaoAluno();
     carregarDados();
   }
 
@@ -318,8 +350,8 @@ export default function TurmaDetalhesPage() {
           <button
             onClick={() => setAba('alunos')}
             className={`px-4 py-3 text-sm font-medium ${aba === 'alunos'
-                ? 'border-b-2 border-blue-600 text-blue-700'
-                : 'text-slate-500 hover:text-slate-900'
+              ? 'border-b-2 border-blue-600 text-blue-700'
+              : 'text-slate-500 hover:text-slate-900'
               }`}
           >
             Alunos ({alunos.length})
@@ -328,8 +360,8 @@ export default function TurmaDetalhesPage() {
           <button
             onClick={() => setAba('ucs')}
             className={`px-4 py-3 text-sm font-medium ${aba === 'ucs'
-                ? 'border-b-2 border-blue-600 text-blue-700'
-                : 'text-slate-500 hover:text-slate-900'
+              ? 'border-b-2 border-blue-600 text-blue-700'
+              : 'text-slate-500 hover:text-slate-900'
               }`}
           >
             UCs ({ucs.length})
@@ -370,25 +402,16 @@ export default function TurmaDetalhesPage() {
                     />
                   </div>
 
-                  <div>
+                  <div className="md:col-span-2">
                     <label className="mb-2 block text-sm font-semibold text-slate-700">
-                      E-mail
+                      Observações do docente
                     </label>
-                    <Input
-                      value={emailAluno}
-                      onChange={(e) => setEmailAluno(e.target.value)}
-                      placeholder="Ex.: aluno@email.com"
-                    />
-                  </div>
 
-                  <div>
-                    <label className="mb-2 block text-sm font-semibold text-slate-700">
-                      Telefone
-                    </label>
-                    <Input
-                      value={telefone}
-                      onChange={(e) => setTelefone(e.target.value)}
-                      placeholder="Ex.: (11) 99999-9999"
+                    <textarea
+                      value={observacoesDocente}
+                      onChange={(e) => setObservacoesDocente(e.target.value)}
+                      placeholder="Ex.: aluno precisa de acompanhamento em lógica"
+                      className="min-h-24 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm"
                     />
                   </div>
 
@@ -418,26 +441,115 @@ export default function TurmaDetalhesPage() {
             </Card>
 
             <div className="space-y-3">
-              {alunos.map((aluno) => (
-                <Card key={aluno.id} className="border-0 shadow-sm">
-                  <CardContent className="flex items-center justify-between p-5">
-                    <div>
-                      <h2 className="font-semibold text-slate-900">
-                        {aluno.nomeCompleto}
-                      </h2>
+              {alunos.map((aluno) => {
+                const editando = alunoEditandoId === aluno.id;
 
-                      <p className="text-sm text-slate-500">
-                        {aluno.email ?? 'Sem e-mail'} ·{' '}
-                        {aluno.telefone ?? 'Sem telefone'}
-                      </p>
-                    </div>
+                return (
+                  <Card key={aluno.id} className="border-0 shadow-sm">
+                    <CardContent className="p-5">
+                      {editando ? (
+                        <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+                          <div>
+                            <label className="mb-2 block text-sm font-semibold text-slate-700">
+                              ID interno
+                            </label>
+                            <Input
+                              value={editIdInterno}
+                              onChange={(e) => setEditIdInterno(e.target.value)}
+                            />
+                          </div>
 
-                    <span className="rounded-full bg-blue-100 px-3 py-1 text-sm text-blue-700">
-                      {aluno.status}
-                    </span>
-                  </CardContent>
-                </Card>
-              ))}
+                          <div>
+                            <label className="mb-2 block text-sm font-semibold text-slate-700">
+                              Nome completo
+                            </label>
+                            <Input
+                              value={editNomeCompleto}
+                              onChange={(e) => setEditNomeCompleto(e.target.value)}
+                            />
+                          </div>
+
+                          <div>
+                            <label className="mb-2 block text-sm font-semibold text-slate-700">
+                              Status
+                            </label>
+                            <select
+                              className="h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm"
+                              value={editStatusAluno}
+                              onChange={(e) => setEditStatusAluno(e.target.value)}
+                            >
+                              <option value="ATIVO">Ativo</option>
+                              <option value="EVADIDO">Evadido</option>
+                              <option value="TRANSFERIDO">Transferido</option>
+                              <option value="CONCLUIDO">Concluído</option>
+                            </select>
+                          </div>
+
+                          <div className="md:col-span-2">
+                            <label className="mb-2 block text-sm font-semibold text-slate-700">
+                              Observações do docente
+                            </label>
+                            <textarea
+                              value={editObservacoesDocente}
+                              onChange={(e) => setEditObservacoesDocente(e.target.value)}
+                              className="min-h-24 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm"
+                            />
+                          </div>
+
+                          <div className="md:col-span-2 flex justify-end gap-3">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              onClick={cancelarEdicaoAluno}
+                            >
+                              Cancelar
+                            </Button>
+
+                            <Button
+                              type="button"
+                              onClick={() => atualizarAluno(aluno.id)}
+                            >
+                              Salvar alterações
+                            </Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex items-center justify-between gap-5">
+                          <div>
+                            <h2 className="font-semibold text-slate-900">
+                              {aluno.nomeCompleto}
+                            </h2>
+
+                            <p className="text-sm text-slate-500">
+                              {aluno.observacoesDocente || 'Sem observações registradas'}
+                            </p>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            {aluno.idInterno && (
+                              <span className="rounded-full bg-slate-100 px-3 py-1 text-sm text-slate-700">
+                                ID {aluno.idInterno}
+                              </span>
+                            )}
+
+                            <span className="rounded-full bg-blue-100 px-3 py-1 text-sm text-blue-700">
+                              {aluno.status}
+                            </span>
+
+                            <Button
+                              type="button"
+                              variant="outline"
+                              onClick={() => iniciarEdicaoAluno(aluno)}
+                            >
+                              Editar
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
           </>
         )}

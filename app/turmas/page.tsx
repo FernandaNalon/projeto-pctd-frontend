@@ -25,6 +25,7 @@ export default function TurmasPage() {
   const [periodo, setPeriodo] = useState('NOITE');
   const [dataInicio, setDataInicio] = useState('');
   const [dataConclusao, setDataConclusao] = useState('');
+  const [aba, setAba] = useState<'ativas' | 'arquivadas'>('ativas');
 
   async function carregarTurmas() {
     const data = await apiFetch('/turmas');
@@ -45,7 +46,7 @@ export default function TurmasPage() {
         curso,
         periodo,
         dataInicio,
-        dataFim: dataConclusao || null,
+        ...(dataConclusao ? { dataFim: dataConclusao } : {}),
         status: 'ATIVA',
       }),
     });
@@ -55,6 +56,36 @@ export default function TurmasPage() {
     setPeriodo('NOITE');
     setDataInicio('');
     setDataConclusao('');
+
+    carregarTurmas();
+  }
+
+  async function arquivarTurma(id: string) {
+    const confirmar = confirm('Deseja arquivar esta turma?');
+
+    if (!confirmar) return;
+
+    await apiFetch(`/turmas/${id}`, {
+      method: 'DELETE',
+    });
+
+    carregarTurmas();
+  }
+
+  const turmasAtivas = turmas.filter((turma) => turma.status !== 'ARQUIVADA');
+  const turmasArquivadas = turmas.filter((turma) => turma.status === 'ARQUIVADA');
+  const turmasExibidas = aba === 'ativas' ? turmasAtivas : turmasArquivadas;
+
+  async function desarquivarTurma(id: string) {
+    const confirmar = confirm('Deseja restaurar esta turma?');
+
+    if (!confirmar) {
+      return;
+    }
+
+    await apiFetch(`/turmas/${id}/desarquivar`, {
+      method: 'PATCH',
+    });
 
     carregarTurmas();
   }
@@ -71,89 +102,116 @@ export default function TurmasPage() {
           </p>
         </div>
 
-        <Card className="mb-8 border-0 shadow-sm">
-          <CardHeader>
+        <Card className="mb-10 border-0 shadow-sm">
+          <CardHeader className="pb-2">
             <CardTitle className="text-lg">Cadastrar nova turma</CardTitle>
           </CardHeader>
 
           <CardContent>
-            <form
-              onSubmit={cadastrarTurma}
-              className="grid grid-cols-1 gap-5 md:grid-cols-2"
-            >
-              <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700">
-                  Nome da turma
-                </label>
-                <Input
-                  value={nome}
-                  onChange={(e) => setNome(e.target.value)}
-                  placeholder="Ex: TII 13"
-                />
+            <form onSubmit={cadastrarTurma} className="space-y-6">
+              <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+                <div>
+                  <label className="mb-2 block text-sm font-semibold text-slate-700">
+                    Nome da turma
+                  </label>
+                  <Input
+                    value={nome}
+                    onChange={(e) => setNome(e.target.value)}
+                    placeholder="Ex.: TII12"
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-sm font-semibold text-slate-700">
+                    Curso
+                  </label>
+                  <select
+                    value={curso}
+                    onChange={(e) => setCurso(e.target.value)}
+                    className="h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm"
+                  >
+                    <option value="">Selecione...</option>
+                    <option value="Técnico em Informática para Internet">
+                      Técnico em Informática para Internet
+                    </option>
+                    <option value="Técnico em Desenvolvimento de Sistemas">
+                      Técnico em Desenvolvimento de Sistemas
+                    </option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-sm font-semibold text-slate-700">
+                    Período
+                  </label>
+                  <select
+                    className="h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm"
+                    value={periodo}
+                    onChange={(e) => setPeriodo(e.target.value)}
+                  >
+                    <option value="MANHA">Manhã</option>
+                    <option value="TARDE">Tarde</option>
+                    <option value="NOITE">Noite</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-sm font-semibold text-slate-700">
+                    Data de início
+                  </label>
+                  <Input
+                    type="date"
+                    value={dataInicio}
+                    onChange={(e) => setDataInicio(e.target.value)}
+                  />
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="mb-2 block text-sm font-semibold text-slate-700">
+                    Data de conclusão
+                    <span className="ml-1 font-normal text-slate-400">
+                      (opcional)
+                    </span>
+                  </label>
+                  <Input
+                    type="date"
+                    value={dataConclusao}
+                    onChange={(e) => setDataConclusao(e.target.value)}
+                  />
+                </div>
               </div>
 
-              <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700">
-                  Curso
-                </label>
-                <Input
-                  value={curso}
-                  onChange={(e) => setCurso(e.target.value)}
-                  placeholder="Ex: Técnico em Informática para Internet"
-                />
-              </div>
-
-              <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700">
-                  Período
-                </label>
-                <select
-                  className="h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm"
-                  value={periodo}
-                  onChange={(e) => setPeriodo(e.target.value)}
-                >
-                  <option value="MANHA">Manhã</option>
-                  <option value="TARDE">Tarde</option>
-                  <option value="NOITE">Noite</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700">
-                  Data de início
-                </label>
-                <Input
-                  type="date"
-                  value={dataInicio}
-                  onChange={(e) => setDataInicio(e.target.value)}
-                />
-              </div>
-
-              <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700">
-                  Data de conclusão
-                  <span className="ml-1 font-normal text-slate-400">
-                    (opcional)
-                  </span>
-                </label>
-                <Input
-                  type="date"
-                  value={dataConclusao}
-                  onChange={(e) => setDataConclusao(e.target.value)}
-                />
-              </div>
-
-              <div className="flex items-end">
-                <Button type="submit" className="h-10 w-full">
-                  Cadastrar turma
-                </Button>
-              </div>
+              <Button type="submit" className="h-11 w-full">
+                Cadastrar turma
+              </Button>
             </form>
           </CardContent>
         </Card>
 
+        <div className="mb-6 flex gap-2 border-b border-slate-200">
+          <button
+            onClick={() => setAba('ativas')}
+            className={`px-4 py-3 text-sm font-medium ${aba === 'ativas'
+                ? 'border-b-2 border-blue-600 text-blue-700'
+                : 'text-slate-500 hover:text-slate-900'
+              }`}
+          >
+            Turmas ativas ({turmasAtivas.length})
+          </button>
+
+          <button
+            onClick={() => setAba('arquivadas')}
+            className={`px-4 py-3 text-sm font-medium ${aba === 'arquivadas'
+                ? 'border-b-2 border-blue-600 text-blue-700'
+                : 'text-slate-500 hover:text-slate-900'
+              }`}
+          >
+            Arquivadas ({turmasArquivadas.length})
+          </button>
+        </div>
+
         <div className="space-y-4">
-          {turmas.map((turma) => (
+          {turmasExibidas.map((turma) => (
             <Card key={turma.id} className="border-0 shadow-sm">
               <CardContent className="flex items-center justify-between p-6">
                 <div>
@@ -178,10 +236,34 @@ export default function TurmasPage() {
                   >
                     Abrir turma
                   </Link>
+
+                  {aba === 'ativas' ? (
+                    <button
+                      type="button"
+                      onClick={() => arquivarTurma(turma.id)}
+                      className="rounded-md border border-amber-200 px-4 py-2 text-sm font-medium text-amber-700 hover:bg-amber-50"
+                    >
+                      Arquivar
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => desarquivarTurma(turma.id)}
+                      className="rounded-md border border-green-200 px-4 py-2 text-sm font-medium text-green-700 hover:bg-green-50"
+                    >
+                      Restaurar
+                    </button>
+                  )}
                 </div>
               </CardContent>
             </Card>
           ))}
+
+          {turmasExibidas.length === 0 && (
+            <p className="text-sm text-slate-500">
+              Nenhuma turma encontrada nesta seção.
+            </p>
+          )}
         </div>
       </main>
     </div>

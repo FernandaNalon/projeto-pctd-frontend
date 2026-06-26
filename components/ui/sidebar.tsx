@@ -14,7 +14,7 @@ import {
 const items = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/turmas', label: 'Turmas', icon: Users },
-  { href: '/observacoes', label: 'Observações', icon: MessageSquare },
+  { href: '/registros', label: 'Registros', icon: MessageSquare },
   { href: '/acessos', label: 'Acessos', icon: Settings },
 ];
 
@@ -29,7 +29,7 @@ export function Sidebar() {
   }
 
   return (
-    <aside className="w-72 min-h-screen bg-slate-950 text-white flex flex-col">
+    <aside className="sticky top-0 h-screen shrink-0 w-64 bg-slate-900 text-white flex flex-col">
 
       <div className="p-6 border-b border-slate-800">
         <h1 className="text-2xl font-bold">
